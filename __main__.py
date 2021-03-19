@@ -1,10 +1,11 @@
 import sys
 import pygame
 import numpy as np
-import time
 import math
 import random
+import space_time
 
+FAST = True
 PHYSICS = 'Newton'
 PHYSICS_OPTIONS = ('Newton',)
 if PHYSICS.title() not in map(lambda o: o.title(), PHYSICS_OPTIONS):
@@ -15,29 +16,40 @@ if PHYSICS == 'Newton':
     G = 6.67e-11
 
 if PHYSICS == 'Einstein':
-    K = 8 * math.pi * 6.67e-11 / 2.998e+4
+    C = 2.998e+4
+    K = 8 * math.pi * 6.67e-11 / (C ** 4)
+    LAMBDA = 1.1056e+52
+    raise NotImplementedError
+
+pygame.display.set_caption(f"Gravity - {PHYSICS}")
 
 
 class Data:
     def __init__(self):
-        self.SPEED = 1/1000000
-        Z = [x.split('=')[1] for x in sys.argv if '-z' in x]
-        if Z:
-            self.ZOOM = int(Z[-1])
+        self.SPEED = 10
+        ZOOM = [x.split('=')[1] for x in sys.argv if '-z' in x and '=' in x]
+        if ZOOM:
+            self.ZOOM = float(Z[-1])
         else:
             self.ZOOM = 1
 
-        ALLOW = [x.split('=')[1] for x in sys.argv if '-a' in x]
+        ALLOW = [x.split('=')[1] for x in sys.argv if '-a' in x and '=' in x]
         if ALLOW:
             self.ALLOWTRACE = int(ALLOW[-1])
         else:
             self.ALLOWTRACE = 1
 
-        TRACE = [x.split('=')[1] for x in sys.argv if '-t' in x]
+        TRACE = [x.split('=')[1] for x in sys.argv if '-t' in x and '=' in x]
         if TRACE and self.ALLOWTRACE:
             self.TRACE = int(TRACE[-1])
         else:
             self.TRACE = self.ALLOWTRACE
+
+        SPACETIME = [x.split('=')[1] for x in sys.argv if '-s' in x and '=' in x]
+        if SPACETIME and self.ALLOWTRACE:
+            self.SPACETIME = int(SPACETIME[-1])
+        else:
+            self.SPACETIME = self.ALLOWTRACE
 
         self.ADD = np.array((0, 0))
 
@@ -81,9 +93,11 @@ nothing = pygame.Surface((1, 1))
 nothing.set_colorkey((0, 0, 0))
 
 
-def get_tracer_image():
+def get_tracer_image(t):
     if data.ALLOWTRACE:
-        if data.TRACE:
+        if (data.TRACE and t == 0):
+            return on
+        elif (data.SPACETIME and t == 1):
             return on
         return off
     return nothing
@@ -92,18 +106,22 @@ m_motion = {'w': (0, -1), 'a': (-1, 0), 's': (0, 1), 'd': (1, 0)}
 
 def paused(screen):
     done = False
-    l, g, c = zip(*map((lambda o: (o.location, o.gsize(), o.color)), objects))
+    l, g, c, m = zip(*map((lambda o: (o.location, o.gsize(), o.color, o.mass)), objects))
     while not done:
+        screen.fill((0, 0, 0))
+        if data.SPACETIME:
+            space_time.draw(screen, l, m)
         view(screen, l, g, c, [], False)
         events = pygame.event.get()
         screen.blit(play, (75, 0))
-        screen.blit(get_tracer_image(), (150, 12))
+        screen.blit(get_tracer_image(0), (150, 12))
+        screen.blit(get_tracer_image(1), (200, 12))
         screen.blit(bar, (75, 112))
         screen.blit(slider, (data.ZOOM*100+75, 75))
         [sys.exit() for e in events if e.type == pygame.QUIT]
         mousedown = [x.pos for x in events if x.type == pygame.MOUSEBUTTONDOWN]
         mouseup = [x.pos for x in events if x.type == pygame.MOUSEBUTTONUP]
-        keydown = [x.text for x in events if x.type == pygame.TEXTINPUT and x.text in 'wasd']
+        keydown = [x.text for x in events if x.type == pygame.TEXTINPUT and x.text in 'wasd ']
 
         for loc in mousedown:
             if (75 < loc[0] < 125) and (0 < loc[1] < 50):
@@ -112,6 +130,10 @@ def paused(screen):
             if (150 < loc[0] < 175) and (12 < loc[1] < 37):
                 data.TRACE = not data.TRACE
 
+            if (200 < loc[0] < 225) and (12 < loc[1] < 37):
+                data.SPACETIME = not data.SPACETIME
+
+
             if (75 < loc[0] < 275) and (75 < loc[1] < 175):
                 data.ZOOM = ((loc[0]-75) / 100)
 
@@ -119,9 +141,11 @@ def paused(screen):
             if (75 < loc[0] < 275) and (75 < loc[1] < 175):
                 data.ZOOM = ((loc[0]-75) / 100)
 
-
+        for text in keydown:
+            if text == ' ':
+                pygame.display.flip()
+                return
         pygame.display.flip()
-
 
 
 def info(screen, events):
@@ -134,15 +158,15 @@ def info(screen, events):
 
 
 def view(screen, locations, sizes, colors, events, info_draw=True):
-
-    keydown = [x.text for x in events if x.type == pygame.TEXTINPUT and x.text in 'wasd']
+    keydown = [x.text for x in events if x.type == pygame.TEXTINPUT and x.text in 'wasd ']
 
 
     for key in keydown:
+        if key == ' ':
+            return paused(screen)
         data.ADD += m_motion[key]
 
 
-    screen.fill((0, 0, 0))
     vectors = VIEW_DIRECTION
     l = []
     for loc in locations:
@@ -166,7 +190,6 @@ def view(screen, locations, sizes, colors, events, info_draw=True):
                     pygame.draw.lines(screen, (255, 0, 0), False, loc*data.ZOOM+data.ADD)
     if info_draw:
         info(screen, events)
-        pygame.display.flip()
 
 vtracer = []
 extra = []
@@ -180,40 +203,63 @@ class body:
         self.momentum = np.array(momentum, dtype=float)
         self.mass = float(mass)
 
-
-    def update(self, items, colisions):
-        items = [x for x in items if x != self]
-        #print(self.location)
-        for item in items:
-            if (np.abs(item.location - self.location) < (self.gsize(self.mass) + self.gsize(item.mass))).all():
-                add = True
-                for c in colisions:
-                    if self in c:
-                        add = False
-                        break
-                if add:
-                    colisions.add((self, item))
-            direction = self.location - item.location
-            force = self.gravity(self.mass, item.mass, self.get_distance(direction)) / self.mass
-            direction_matrix = -direction / np.sum(np.abs(direction))
-            self.momentum += (direction_matrix * (force / self.mass)) / data.SPEED
-        self.location += self.momentum / data.SPEED
+    if FAST:
+        def update(self, locs, masses):
 
 
-    def get_distance(self, loc):
-        return math.sqrt(np.sum(loc ** 2))
+            if len(locs):
+                direction = (self.location + ([self.gsize()] * 2 + [0])) - (locs + self.gsize_all(masses))
+                force = self.gravity(masses, self.get_distance(direction))
+                direction_matrix = -direction.T / np.sum(np.abs(direction), 1)
+                self.momentum += np.sum(direction_matrix * force, 1) / data.SPEED
+            self.location += self.momentum / data.SPEED
 
-    def gravity(self, m1, m2, r):
-        try:
-            return G * m1 * m2 / (r ** 2)
-        except ZeroDivisionError:
-            return 0 # do it next tick
+        def get_distance(self, loc):
+            return np.sqrt(np.sum(loc ** 2, 1))
+
+        def gravity(self, m, r):
+            return np.min((r, G * m / (r ** 2)), 0)
+
+        def gsize_all(self, masses):
+            volume = self.volume(masses)
+            answer = (volume * 3 / (4 * math.pi)) ** (1/3) / 100
+            return np.array((answer, answer, [0] * len(answer))).T
+
+
+    else:
+        def update(self, items, colisions):
+            items = (x for x in items if x != self)
+            for item in items:
+                if (np.abs(item.location - self.location) < (self.gsize(self.mass) + self.gsize(item.mass))).all():
+                    add = True
+                    for c in colisions:
+                        if self in c:
+                            add = False
+                            break
+                    if add:
+                        colisions.add((self, item))
+                direction = self.location - item.location
+                force = self.gravity(self.mass, item.mass, self.get_distance(direction))
+                direction_matrix = -direction / np.sum(np.abs(direction))
+                self.momentum += (direction_matrix * (force / self.mass)) / data.SPEED
+            self.location += self.momentum / data.SPEED
+
+        def get_distance(self, loc):
+            return math.sqrt(np.sum(loc ** 2))
+
+        def gravity(self, m1, m2, r):
+            try:
+                return G * m1 * m2 / (r ** 2)
+            except ZeroDivisionError:
+                return 0 # do it next tick
+
 
     def gsize(self, mass=None):
         if mass == None:
             mass = self.mass
         volume = self.volume(mass)
         return max((volume * 3 / (4 * math.pi)) ** (1/3) / 100, 1) # zoom out
+
 
     def volume(self, mass):
         # Using the density of the earth
@@ -225,10 +271,8 @@ class body:
             oi = objects.index(other)
             if max((si, oi)) == oi:
                 si, oi = oi, si
-                # print(si, oi)
             if data.ALLOWTRACE:
                 if len(vtracer[si]) >= 2:
-                    # print('here')
                     extra.append(vtracer[si])
                 if len(vtracer[oi]) >= 2:
                     extra.append(vtracer[oi])
@@ -243,7 +287,7 @@ class body:
             momentum = (sp * self.momentum) + (op * other.momentum)
             color = tuple((sp * np.array(self.color, dtype=float)) + (op * np.array(other.color, dtype=float)))
             objects.append(body(loc, momentum, mass, color))
-        except ValueError:
+        except (ValueError, IndexError):
             pass # It colided with something else already, I'll colide next tick
 
 def rand():
@@ -263,26 +307,38 @@ def rand():
     return r
 
 SAVES = [
-(body((800, 800, 0), (0, 0, 0), 1e+15), body((950, 800, 0), (0, -.000002, 0), 1e+14), body((1200, 800, 0), (0, .000001, 0), 1e+14)),
-(body((400, 400, 0), (0, .0000001, 0), 1e+15), body((550, 400, 0), (0, -.000002, 0), 1e+14), body((800, 400, 0), (0, .000004, 0), 1e+13)),
-(body((800, 800, 0), (0, -.0000004, 0), 1e+14), body((600, 800, 0), (0, .0000004, 0), 1e+14)),
-(body((800, 800, 0), (0, 0, 0), 1e+15), body((950, 800, 0), (0, -.000002, 0), 1e+14), body((1200, 800, 0), (0, .000001, 0), 1e+14), body((100, 800, 0), (0, .0000005, 0), 3e+14)),
-(body((800, 800, 0), (0, .00000005, 0), 1e+15), body((950, 800, 0), (0, -.000002, 0), 1e+14), body((1200, 800, 0), (0, .000001, 0), 1e+14)),
-
+(body((800, 800, 0), (0, 0, 0), 1e+14), body((600, 800, 0), (0, 4, 0), 1e+14), body((1000, 800, 0), (0, -4.00001, 0), 1e+14)),
+(body((800, 800, 0), (0, -.4, 0), 1e+16), body((650, 800, 0), (0, 40, 0), 1e+14))
 ]
-objects = SAVES[0]
+objects = SAVES[1]
 
 
 objects = list(objects)
-try:
-    while True:
-        colisions = set()
-        for o in objects:
-            o.update(objects, colisions)
-        events = pygame.event.get()
-        [sys.exit() for e in events if e.type == pygame.QUIT]
-        view(screen, *zip(*map((lambda o: (o.location, o.gsize(), o.color)), objects)), events)
-        for c in colisions:
-            c[0].colide(objects, c[1])
-except KeyboardInterrupt:
-    pass
+while True:
+    colisions = set()
+    locs = np.array([x.location for x in objects])
+    masses = np.array([x.mass for x in objects])
+    indexes = np.arange(len(objects))
+
+    for count, o in enumerate(objects):
+        o.update(locs[indexes!=count], masses[indexes!=count])
+    for self in objects:
+        for item in objects:
+            if self != item and (np.abs(item.location - self.location) < (self.gsize(self.mass) + self.gsize(item.mass))).all():
+                add = True
+                for c in colisions:
+                    if self in c:
+                        add = False
+                        break
+                if add:
+                    colisions.add((self, item))
+
+    events = pygame.event.get()
+    [sys.exit() for e in events if e.type == pygame.QUIT]
+    screen.fill((0, 0, 0))
+    if data.SPACETIME:
+        space_time.draw(screen, *zip(*map((lambda o: (o.location, o.mass)), objects)))
+    view(screen, *zip(*map((lambda o: (o.location, o.gsize(), o.color)), objects)), events)
+    pygame.display.flip()
+    for c in colisions:
+        c[0].colide(objects, c[1])

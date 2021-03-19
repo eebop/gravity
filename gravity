@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+HELP=
+VERSION=
+TRACE=
+ALLOWTRACE=
+ZOOM=
+SPACETIME=
+for i in "$@" ; do
+  if [ "$i" = --help ] || [ "$i" = -h ] ; then
+    HELP=1
+  elif [ "$i" = --version ] || [ "$i" = -v ] ; then
+    VERSION=1
+  elif [[ "$i" == --allowtrace* ]] || [[ "$i" == -a* ]] ; then
+    if [[ $i == *=* ]] ; then
+      ALLOWTRACE="=${i##*=}"
+    else
+      ALLOWTRACE="=$2"
+    fi
+  elif [[ "$i" == --trace* ]] || [[ "$i" == -t* ]] ; then
+    if [[ $i == *=* ]] ; then
+      TRACE="=${i##*=}"
+    else
+      TRACE="=$2"
+    fi
+  elif [[ "$i" == --spacetime* ]] || [[ "$i" == -s* ]] ; then
+    if [[ $i == *=* ]] ; then
+      SPACETIME="=${i##*=}"
+    else
+      SPACETIME="=$2"
+    fi
+  elif [[ "$i" == --zoom* ]] || [[ "$i" == -z* ]] ; then
+    if [[ $i == *=* ]] ; then
+      ZOOM="=${i##*=}"
+    else
+      ZOOM="=$2"
+    fi
+  fi
+  shift
+done
+
+if [ "$HELP" = 1 ] ; then
+  echo "gravity: a gravity simulator"
+  echo "gravity [ -t | --trace ] [ -a | --allowtrace ] [ -z | --zoom ] [ -s | --spacetime ]"
+fi
+
+if [ "$VERSION" = 1 ] ; then
+  echo "0.5.0"
+fi
+
+if [ "$HELP" = 1 ] || [ "$VERSION" = 1 ] ; then
+  exit
+fi
+
+
+python3.8 ~/Documents/Sim -z$ZOOM -t$TRACE -a$ALLOWTRACE -s$SPACETIME
