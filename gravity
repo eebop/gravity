@@ -52,4 +52,4 @@ if [ "$HELP" = 1 ] || [ "$VERSION" = 1 ] ; then
 fi
 
 
-python3.8 ~/Documents/Sim -z$ZOOM -t$TRACE -a$ALLOWTRACE -s$SPACETIME
+python3.8 $(cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)/__main__.py -z$ZOOM -t$TRACE -a$ALLOWTRACE -s$SPACETIME
