@@ -23,4 +23,5 @@ bash gravity
 ```
 
 ### Windows
-This section is coming soon!
+First, [download the binary as a tar or zip](https://github.com/eebop/gravity/releases/tag/v0.9.0)
+Then, unpack it. Finally, double-click on `__main__.py` to launch it.
