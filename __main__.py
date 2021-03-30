@@ -48,7 +48,7 @@ class body:
 
 
         if len(locs):
-            direction = (self.location + ([self.gsize()] * 2 + [0])) - (locs + self.gsize_all(masses))
+            direction = (self.location + ([self.gsize()/2] * 2 + [0])) - (locs + self.gsize_all(masses)/2)
             force = self.gravity(masses, self.get_distance(direction))
             direction_matrix = -direction.T / np.sum(np.abs(direction), 1)
             self.momentum += np.sum(direction_matrix * force, 1) / data.SPEED
@@ -96,7 +96,7 @@ class body:
             mass = self.mass + other.mass
             sp = self.mass / mass
             op = other.mass / mass
-            loc = (sp * self.location) + (op * other.location)
+            loc = (sp * (self.location + ([self.gsize()/2] * 2 + [0]))) + (op * (other.location + ([other.gsize()/2] * 2 + [0])))
             momentum = (sp * self.momentum) + (op * other.momentum)
             color = tuple((sp * np.array(self.color, dtype=float)) + (op * np.array(other.color, dtype=float)))
             objects.append(body(loc, momentum, mass, color))
@@ -120,11 +120,13 @@ def rand():
     return r
 
 SAVES = [
-(body((800, 800, 0), (0, 0, 0), 1e+14), body((600, 800, 0), (0, 4, 0), 1e+14), body((1000, 800, 0), (0, -4.00001, 0), 1e+14)),
+(body((800, 775, 0), (-7.7, 0, 0), 1e+14), body((800, 825, 0), (7.7, 0, 0), 1e+14), body((600, 800, 0), (0, 5.7, 0), 1e+14), body((1000, 800, 0), (0, -5.7, 0), 1e+14)),
+(body((800, 725, 0), (8.4, 0, 0), 1e+14), body((800, 875, 0), (-8.4, 0, 0), 1e+14), body((600, 800, 0), (0, 5.7, 0), 1e+14), body((1000, 800, 0), (0, -5.7, 0), 1e+14)),
+(body((800, 800, 0), (0, 0, 0), 1e+14), body((600, 800, 0), (0, 4, 0), 1e+14), body((1000, 800, 0), (0, -4, 0), 1e+14)),
 (body((800, 800, 0), (0, -.4, 0), 1e+16), body((650, 800, 0), (0, 40, 0), 1e+14)),
 (body((800, 800, 0), (0, 0, 0), 1e+16), body((700, 700, 0), (0, 0, 0), 1e+14))
 ]
-objects = SAVES[2]
+objects = SAVES[0]
 
 
 objects = list(objects)
