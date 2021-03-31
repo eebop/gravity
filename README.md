@@ -21,7 +21,7 @@ And now, it is ready. To run, do
 ```
 bash gravity
 ```
-
+(To see all the gravity options, do `bash gravity --help`)
 ### Windows
 First, [download the binary as a tar or zip](https://github.com/eebop/gravity/releases/tag/v0.9.0)
 Then, unpack it. Finally, double-click on `__main__.py` to launch it.
