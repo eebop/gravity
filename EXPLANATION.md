@@ -15,4 +15,9 @@ def gravity(self, m1, m2, r):
 Wait! Hold on! `r` uses distance, but how will I get that?
 Well, I can use the Distance Function for N dimensions
 <img src="https://latex.codecogs.com/svg.latex?\Large&space;d(s,%20e)=\sqrt{(s_0-e_0)^2+(s_1-e_1)^2+...+(s_d-e_d)^2}" title="\Large&space;d(s,%20e)=\sqrt{(s_0-e_0)^2+(s_1-e_1)^2+...+(s_d-e_d)^2}"/>
-with the
+with the two object's locations as the start and end.
+I did this, and my implementation was this:
+```
+def distance(start, end):
+    return np.sqrt(np.sum((start - end) ** 2))
+```
