@@ -6,7 +6,7 @@ How does my gravity formula work, you ask.
 Well, it's made up of many parts.
 My initial plan was to iterate over each object.
 Then, each object would iterate over every other object, calculate the force between them, and add that to its momentum.
-Finally, the objects location would be incremented by its momentum
+Finally, the object's location would be incremented by its momentum
 Okay, so let's implement that ...
 ```
 def gravity(self, m1, m2, r):
