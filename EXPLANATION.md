@@ -27,7 +27,8 @@ Well, it would be proportional (albeit negatively proportional) to the square of
 So, I just have to make a "force-matrix" of where the force would go to.
 What if I just make the force-matrix times the force equal the force in 3D?
 Well, for that to work, the sum of the force-matrix would need to be 1.
-How would I get that? Well, if I take the distance right before the `np.sum` operation, I have the correct formula, except that the sum is equivalent to the square of the distance. That means I just have to divide each x, y, and z value by the x+y+z. So, in N dimentions, the formula looks like this:
+How would I get that? Well, if I take the distance right before the `np.sum` operation, I have the correct formula, except that the sum is equivalent to the square of the distance. That means I just have to divide each x, y, and z value by the x+y+z. Wait! when I square the numbers, all negatives are deleted. I'll have to "save" the negatives and use `copysign`.
+So, in N dimentions, the formula looks like this:
 ```
 direction = (self.location + ([self.gsize()/2] * 2 + [0])) - (locs + self.gsize_all(masses)/2)
 force = self.gravity(masses, self.get_distance(direction))

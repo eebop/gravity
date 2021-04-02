@@ -96,7 +96,7 @@ class body:
             mass = self.mass + other.mass
             sp = self.mass / mass
             op = other.mass / mass
-            loc = (sp * (self.location + ([self.gsize()/2] * 2 + [0]))) + (op * (other.location + ([other.gsize()/2] * 2 + [0])))
+            loc = ((sp * (self.location + ([self.gsize()/2] * 2 + [0]))) + (op * (other.location + ([other.gsize()/2] * 2 + [0])))) - ([self.gsize(mass)/2] * 2 + [0])
             momentum = (sp * self.momentum) + (op * other.momentum)
             color = tuple((sp * np.array(self.color, dtype=float)) + (op * np.array(other.color, dtype=float)))
             objects.append(body(loc, momentum, mass, color))
