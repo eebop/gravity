@@ -50,7 +50,7 @@ class body:
         if len(locs):
             direction = (self.location + ([self.gsize()/2] * 2 + [0])) - (locs + self.gsize_all(masses)/2)
             force = self.gravity(masses, self.get_distance(direction))
-            direction_matrix = -direction.T / np.sum(np.abs(direction), 1)
+            direction_matrix = np.copysign(direction ** 2, -direction).T / np.sum(direction ** 2, 1)
             self.momentum += np.sum(direction_matrix * force, 1) / data.SPEED
         self.location += self.momentum / data.SPEED
 

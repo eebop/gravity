@@ -21,3 +21,10 @@ I did this, and my implementation was this:
 def distance(start, end):
     return np.sqrt(np.sum((start - end) ** 2))
 ```
+Wait! I've calculated the force, but not what direction it is going toward!
+Okay, how am I going to implement that? (This was actually the hardest part of the whole project).
+Well, it would be proportional (albeit negatively proportional) to the square of the distance from the two objects.
+So, I just have to make a "force-matrix" of where the force would go to.
+What if I just make the force-matrix times the force equal the force in 3D?
+Well, for that to work, the sum of the force-matrix would be 1.
+How would I calculate that? Well, if I take the distance right before the `np.sum` operation, I have the correct formula, except that the sum is equivalent to the square of the distance.
