@@ -11,7 +11,7 @@ dtype=float)
 
 pause = pygame.Surface((50, 50))
 pause.set_colorkey((0, 0, 0))
-pygame.draw.polygon(pause, (255, 0, 0), ((0, 0), (0, 50), (50, 25)))
+#pygame.draw.polygon(pause, (255, 0, 0), ((0, 0), (0, 50), (50, 25)))
 
 play = pygame.Surface((50, 50))
 play.set_colorkey((0, 0, 0))
@@ -61,7 +61,7 @@ def paused(screen, l, s, c, m):
         [sys.exit() for e in events if e.type == pygame.QUIT]
         mousedown = [x.pos for x in events if x.type == pygame.MOUSEBUTTONDOWN]
         mouseup = [x.pos for x in events if x.type == pygame.MOUSEBUTTONUP]
-        keydown = [x.text for x in events if x.type == pygame.TEXTINPUT and x.text in 'wasd ']
+        keydown = [x.text for x in events if x.type == pygame.TEXTINPUT and x.text in 'wasd gt']
 
         for loc in mousedown:
             if (75 < loc[0] < 125) and (0 < loc[1] < 50):
@@ -98,13 +98,14 @@ def info(screen, locations, sizes, colors, masses, events):
 
 
 def view(screen, locations, sizes, colors, masses, events, info_draw=True):
-    keydown = [x.text for x in events if x.type == pygame.TEXTINPUT and (x.text in 'wasd' or (x.text == ' ' and info_draw))]
+    keydown = [x.text for x in events if x.type == pygame.TEXTINPUT and (x.text in 'wasdgt' or (x.text == ' ' and info_draw))]
 
 
     for key in keydown:
         if key == ' ':
             return paused(screen, locations, sizes, colors, masses)
-        data.ADD += m_motion[key]
+        else:
+            data.ADD += m_motion[key]
 
 
     vectors = VIEW_DIRECTION

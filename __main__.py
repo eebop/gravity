@@ -120,16 +120,14 @@ def rand():
     return r
 
 SAVES = [
-(body((800, 775, 0), (-7.8, 0, 0), 1e+14), body((800, 825, 0), (7.8, 0, 0), 1e+14), body((600, 800, 0), (0, 5.7, 0), 1e+14), body((1000, 800, 0), (0, -5.7, 0), 1e+14)),
-(body((800, 725, 0), (8.4, 0, 0), 1e+14), body((800, 875, 0), (-8.4, 0, 0), 1e+14), body((600, 800, 0), (0, 5.7, 0), 1e+14), body((1000, 800, 0), (0, -5.7, 0), 1e+14)),
-(body((800, 800, 0), (0, 0, 0), 1e+14), body((600, 800, 0), (0, 4, 0), 1e+14), body((1000, 800, 0), (0, -4, 0), 1e+14)),
-(body((800, 800, 0), (0, -.4, 0), 1e+16), body((650, 800, 0), (0, 40, 0), 1e+14)),
-(body((800, 800, 0), (0, 0, 0), 1e+16), body((700, 700, 0), (0, 0, 0), 1e+14))
+(body((800, 775, 0), (-7.4, 0, 0), 1e+14), body((800, 825, 0), (7.4, 0, 0), 1e+14), body((500, 800, 0), (0, 5.7, 0), 1e+14), body((1100, 800, 0), (0, -5.7, 0), 1e+14)),
+(body((800, 800, 0), (0, 0, -10), 1e+16), body((700, 700, 0), (-40, 40, 0), 1e+14))
 ]
-objects = SAVES[0]
+objects = SAVES[1]
 
 
 objects = list(objects)
+pic = 30
 while True:
     colisions = set()
     locs = np.array([x.location for x in objects])
@@ -153,6 +151,9 @@ while True:
     [sys.exit() for e in events if e.type == pygame.QUIT]
     screen.fill((0, 0, 0))
     graphics.draw(screen, *zip(*map((lambda o: (o.location, o.gsize(), o.color, o.mass)), objects)), events)
+    if pic == 1:
+        pygame.image.save(screen, 'out.png')
     pygame.display.flip()
     for c in colisions:
         c[0].colide(objects, c[1])
+    pic -= 1
