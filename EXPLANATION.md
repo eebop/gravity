@@ -12,9 +12,9 @@ Okay, so let's implement that ...
 def gravity(self, m1, m2, r):
     return r, G * m1 * m2 / (r ** 2)
 ```
-Wait! Hold on! `r` uses distance, but how will I get that?
+Okay, but there is another problem: `r` uses distance, but how will I get that from the 3D coordinates?
 Well, I can use the Distance Function for N Dimensions:
-<img src="https://latex.codecogs.com/svg.latex?\Large&space;d(s,%20e)=\sqrt{(s_0-e_0)^2+(s_1-e_1)^2+...+(s_d-e_d)^2}" title="\Large&space;d(s,%20e)=\sqrt{(s_0-e_0)^2+(s_1-e_1)^2+...+(s_d-e_d)^2}"/>
+<img src="https://latex.codecogs.com/svg.latex?\Large&space;d(s,%20e)=\sqrt{(s_0-e_0)^2+(s_1-e_1)^2+...+(s_d-e_d)^2}" title="My formula"/>
 with the two object's locations as the start and end.
 I did this, and my implementation was this:
 ```
@@ -27,7 +27,7 @@ Well, it would be proportional (albeit negatively proportional) to the square of
 So, I just have to make a "force-matrix" of where the force would go to.
 What if I just make the force-matrix times the force equal the force in 3D?
 Well, for that to work, the sum of the force-matrix would need to be 1.
-How would I get that? Well, if I take the distance right before the `np.sum` operation, I have the correct formula, except that the sum is equivalent to the square of the distance. That means I just have to divide each x, y, and z value by the x+y+z. Wait! when I square the numbers, all negatives are deleted. I'll have to "save" the negatives and use `copysign`.
+How would I get that? Well, if I take the distance right before the `np.sum` operation, I have the correct formula, except that the sum is equivalent to the square of the distance. That means I just have to divide each x, y, and z value by the x+y+z. Okay, but when I square the numbers, all negatives are canceled out. I'll have to "save" the negatives by useing `np.copysign`.
 So, in N dimentions, the formula looks like this:
 ```
 direction = (self.location + ([self.gsize()/2] * 2 + [0])) - (locs + self.gsize_all(masses)/2)
