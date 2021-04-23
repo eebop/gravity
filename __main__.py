@@ -7,6 +7,7 @@ import space_time
 from data import data
 import graphics
 from gmath import distance
+import time
 
 FAST = True
 PHYSICS = 'Newton'
@@ -32,7 +33,7 @@ DISPLAY_SIZE = (0, 0)
 pygame.init()
 screen = pygame.display.set_mode(DISPLAY_SIZE)
 
-
+print(screen.get_size())
 
 
 class body:
@@ -120,15 +121,20 @@ def rand():
     return r
 
 SAVES = [
-(body((800, 775, 0), (-7.4, 0, 0), 1e+14), body((800, 825, 0), (7.4, 0, 0), 1e+14), body((500, 800, 0), (0, 5.7, 0), 1e+14), body((1100, 800, 0), (0, -5.7, 0), 1e+14)),
+(body((800, 780, 0), (-7.4, 0, 0), 1e+14), body((800, 820, 0), (7.4, 0, 0), 1e+14), body((500, 800, 0), (0, 5.7, 0), 1e+14), body((1100, 800, 0), (0, -5.7, 0), 1e+14)),
 (body((800, 800, 0), (0, 0, -10), 1e+16), body((700, 700, 0), (-40, 40, 0), 1e+14))
 ]
-objects = SAVES[1]
+objects = SAVES[0]
 
 
 objects = list(objects)
-pic = 30
+tick = 0
+old_time = time.time()
+average = []
 while True:
+    new_time = time.time()
+    average.append(new_time - old_time)
+    old_time = new_time
     colisions = set()
     locs = np.array([x.location for x in objects])
     masses = np.array([x.mass for x in objects])
@@ -151,9 +157,9 @@ while True:
     [sys.exit() for e in events if e.type == pygame.QUIT]
     screen.fill((0, 0, 0))
     graphics.draw(screen, *zip(*map((lambda o: (o.location, o.gsize(), o.color, o.mass)), objects)), events)
-    if pic == 1:
-        pygame.image.save(screen, 'out.png')
+    pygame.image.save(screen, 'pic%s.png' % tick)
+    tick += 1
+    #print(sum(average)/len(average))
     pygame.display.flip()
     for c in colisions:
         c[0].colide(objects, c[1])
-    pic -= 1
